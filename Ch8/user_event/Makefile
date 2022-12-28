@@ -39,6 +39,7 @@ ifdef AMDAPPSDKROOT
 	else
 		LIB_DIRS=$(AMDAPPSDKROOT)/lib/x86_64
 	endif
+	LIB_DIRS+=$(AMDAPPSDKROOT)/lib
 else
 
 # Check for Linux-Nvidia

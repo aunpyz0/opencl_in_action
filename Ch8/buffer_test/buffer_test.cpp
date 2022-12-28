@@ -1,5 +1,5 @@
-#define __CL_ENABLE_EXCEPTIONS
-#define __NO_STD_VECTOR
+#define CL_HPP_TARGET_OPENCL_VERSION 220
+#define CL_HPP_ENABLE_EXCEPTIONS
 #define PROGRAM_FILE "blank.cl"
 #define KERNEL_FUNC "blank"
 
@@ -8,11 +8,7 @@
 #include <iostream>
 #include <iterator>
 
-#ifdef MAC
-#include <OpenCL/cl.hpp>
-#else
-#include <CL/cl.hpp>
-#endif
+#include <CL/opencl.hpp>
 
 int main(void) {
    
@@ -22,7 +18,7 @@ int main(void) {
 
    // Data and rectangle geometry
    float fullMatrix[80], zeroMatrix[80];
-   cl::size_t<3> bufferOrigin, hostOrigin, region;
+   cl::array<cl::size_type, 3> bufferOrigin, hostOrigin, region;
 
    try {
       // Initialize data
@@ -40,8 +36,7 @@ int main(void) {
       std::ifstream programFile(PROGRAM_FILE);
       std::string programString(std::istreambuf_iterator<char>(programFile),
             (std::istreambuf_iterator<char>()));
-      cl::Program::Sources source(1, std::make_pair(programString.c_str(),
-            programString.length()+1));
+      cl::Program::Sources source(1, programString);
       cl::Program program(context, source);
       program.build(devices);
       cl::Kernel kernel(program, KERNEL_FUNC);
@@ -54,22 +49,23 @@ int main(void) {
 
       // Create queue and enqueue kernel-execution command
       cl::CommandQueue queue(context, devices[0]);
-      queue.enqueueTask(kernel);
+      queue.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(1), cl::NDRange(1));
 
       // Update the content of the buffer
       queue.enqueueWriteBuffer(matrixBuffer, CL_TRUE, 0, 
             sizeof(fullMatrix), fullMatrix);
 
       // Read a rectangle of data from the buffer
-      bufferOrigin.push_back(5*sizeof(float)); 
-      bufferOrigin.push_back(3);
-      bufferOrigin.push_back(0);
-      hostOrigin.push_back(1*sizeof(float)); 
-      hostOrigin.push_back(1);
-      hostOrigin.push_back(0);
-      region.push_back(4*sizeof(float)); 
-      region.push_back(4);
-      region.push_back(1);
+      std::cout << sizeof(float) << std::endl;
+      bufferOrigin[0] = (5*sizeof(float)); 
+      bufferOrigin[1] = 3;
+      bufferOrigin[2] = 0;
+      hostOrigin[0] = (1*sizeof(float)); 
+      hostOrigin[1] = 1;
+      hostOrigin[2] = 0;
+      region[0] = (4*sizeof(float)); 
+      region[1] = 4;
+      region[2] = 1;
       queue.enqueueReadBufferRect(matrixBuffer, CL_TRUE, 
          bufferOrigin, hostOrigin, region, 
          10*sizeof(float), 0, 

@@ -1,5 +1,5 @@
-#define __CL_ENABLE_EXCEPTIONS
-#define __NO_STD_VECTOR
+#define CL_HPP_TARGET_OPENCL_VERSION 220
+#define CL_HPP_ENABLE_EXCEPTIONS
 #define PROGRAM_FILE "blank.cl"
 #define KERNEL_FUNC "blank"
 
@@ -11,7 +11,7 @@
 #ifdef MAC
 #include <OpenCL/cl.hpp>
 #else
-#include <CL/cl.hpp>
+#include <CL/opencl.hpp>
 #endif
 
 void CL_CALLBACK printMessage(cl_event event, cl_int status, void* data) {
@@ -35,8 +35,7 @@ int main(void) {
       std::ifstream programFile(PROGRAM_FILE);
       std::string programString(std::istreambuf_iterator<char>(programFile),
             (std::istreambuf_iterator<char>()));
-      cl::Program::Sources source(1, std::make_pair(programString.c_str(),
-            programString.length()+1));
+      cl::Program::Sources source(1, programString);
       cl::Program program(context, source);
       program.build(devices);
       cl::Kernel kernel(program, KERNEL_FUNC);
@@ -51,7 +50,7 @@ int main(void) {
       cl::vector<cl::Event> waitList;
       waitList.push_back((cl::Event)userEvent);
       cl::CommandQueue queue(context, devices[0]);
-      queue.enqueueTask(kernel, &waitList, &callbackEvent);
+      queue.enqueueNDRangeKernel(kernel, cl::NDRange(), cl::NDRange(1), cl::NDRange(1), &waitList, &callbackEvent);
 
       // Configure event processing
       callbackEvent.setCallback(CL_COMPLETE, &printMessage);
