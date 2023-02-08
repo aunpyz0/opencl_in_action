@@ -36,8 +36,23 @@ const dim = (col) => {
 	}
 }
 
+const coord = (gid) => {
+	let size = 16
+	let row = 0
+	while (gid >= size) {
+		gid -= size--
+		row++
+	}
+	const col = gid + row
+	size += row
+	console.log(`row: ${row}, col: ${col}, size: ${size}`)
+	console.log(`index ${row * size + col}`)
+	console.log(`index' ${row * size * 4 + col}`)
+}
+
 //dim(process.argv[2])
-for (let i = 0; i < process.argv[2]; ++i) {
-	dim(i)
+for (let i = 0; i <= process.argv[2]; ++i) {
+	// dim(i)
+	coord(i)
 	console.log('-------------')
 }
